@@ -1,0 +1,121 @@
+1. Selezionare tutti gli studenti iscritti al Corso di Laurea in Economia
+
+    SELECT
+        COUNT(*) AS numero_di_studenti
+    FROM
+        DEGREES
+    INNER JOIN students ON DEGREES.id = students.degree_id
+    WHERE
+        DEGREES.name LIKE '%Economia%'
+
+2. Selezionare tutti i Corsi di Laurea Magistrale del Dipartimento di
+Neuroscienze
+
+    SELECT
+        *
+    FROM
+        DEGREES
+    INNER JOIN DEPARTMENTS ON DEGREES.department_id = DEPARTMENTS.id
+    WHERE
+        DEPARTMENTS.name LIKE '%Neuroscienze%' AND DEGREES.name LIKE '%Magistrale%'
+
+3. Selezionare tutti i corsi in cui insegna Fulvio Amato (id=44)
+
+    SELECT
+        *
+    FROM
+        COURSE_TEACHER ct
+    LEFT JOIN COURSES c ON
+        ct.course_id = c.id
+    RIGHT JOIN TEACHERS t ON
+        ct.teacher_id = t.id
+    WHERE
+        t.name LIKE '%Fulvio%' AND t.surname LIKE '%Amato%'
+
+    (GLI ALIAS ACCANTO ALLE TABELLE SONO LA SVOLTA!)
+
+4. Selezionare tutti gli studenti con i dati relativi al corso di laurea a cui
+sono iscritti e il relativo dipartimento, in ordine alfabetico per cognome e
+nome
+
+    SELECT
+        s.id,
+        s.name,
+        s.surname,
+        d.name,
+        dep.name
+    FROM
+        STUDENTS s
+    JOIN DEGREES d ON
+        s.degree_id = d.id
+    JOIN DEPARTMENTS dep ON
+        d.department_id = dep.id
+    ORDER BY
+        s.surname ASC
+
+
+5. Selezionare tutti i corsi di laurea con i relativi corsi e insegnanti
+
+    SELECT
+        t.id,
+        t.name,
+        t.surname,
+        d.name AS corso_di_laurea,
+        c.name AS corso
+    FROM
+        DEGREES d
+    JOIN COURSES c ON
+        d.id = c.degree_id
+    LEFT JOIN COURSE_TEACHER ct ON
+        c.id = ct.course_id
+    LEFT JOIN TEACHERS t ON
+        ct.teacher_id = t.id
+    ORDER BY
+        t.surname ASC,
+        t.name ASC;
+
+6. Selezionare tutti i docenti che insegnano nel Dipartimento di
+Matematica (54)
+
+    SELECT DISTINCT
+        t.id,
+        t.name,
+        t.surname,
+        dep.name AS department_name
+    FROM
+        TEACHERS t
+    JOIN COURSE_TEACHER ct ON
+        t.id = ct.teacher_id
+    JOIN COURSES c ON
+        ct.course_id = c.id
+    JOIN DEGREES d ON
+        c.degree_id = d.id
+    JOIN DEPARTMENTS dep ON
+        d.department_id = dep.id
+    WHERE
+        dep.name LIKE '%Matematica%'
+    ORDER BY
+        t.id ASC
+
+    (DISTINCT per gli id funziona meglio di GROUP BY)
+
+7. BONUS: Selezionare per ogni studente il numero di tentativi sostenuti
+per ogni esame, stampando anche il voto massimo. Successivamente,
+filtrare i tentativi con voto minimo 18.
+
+    SELECT
+        s.id,
+        s.name,
+        s.surname,
+        COUNT(ex.vote) AS tentativi,
+        MAX(ex.vote) AS voto_massimo
+    FROM
+        STUDENTS s
+    LEFT JOIN EXAM_STUDENT ex ON
+        s.id = ex.student_id
+    WHERE
+        ex.vote >= '18'
+    GROUP BY
+        s.id,
+        s.name,
+        s.surname
